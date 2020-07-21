@@ -1,0 +1,45 @@
+.content .formbuttons .easyui-linkbutton
+{
+    padding:5px 30px 5px 30px;
+    margin:10px;
+}
+
+.content .formbuttons .l-btn-text
+{
+    font-size:16px;
+}
+
+.floatformbuttons
+{
+    text-align:center;
+    padding:20px;
+    position: fixed;
+    bottom:0;
+    left:230px;
+    width:calc(100% - 230px);
+    border-top:1px solid #ddd;
+    background-color:white;
+    z-index:2000;
+}
+
+.content .formitem
+{
+    margin-bottom:30px
+}
+.content .panel
+{
+    margin-bottom:30px
+}
+
+.content .panel-header
+{
+    border-bottom:none;
+    padding:20px;
+}
+
+.content .panel-title
+{
+    font-size:16px;
+    color:#111;
+}
+ 

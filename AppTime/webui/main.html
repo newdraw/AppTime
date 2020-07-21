@@ -1,0 +1,188 @@
+﻿<!DOCTYPE html>
+<html style="height:100vh">
+<head>
+    <meta charset="UTF-8"/>
+    <title></title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="scripts/easyui/themes/metro/easyui.css">
+    <link rel="stylesheet" href="scripts/easyui/themes/color.css" />
+    <link rel="stylesheet" href="css/fontawesome-free-5.12.1-web/css/all.css" />
+
+    <style> 
+
+        a {
+            text-decoration: none;
+            color: initial;
+        }
+
+        input, select {
+            padding: 4px;
+            border-color: #eee;
+        }
+
+        #banner {
+            padding: 10px 15px 10px 15px;
+            line-height: 50px;
+            vertical-align: middle;
+            height: 70px;
+            background-color: white;
+            background-size: cover;
+            background-position: center center;
+        }
+
+            #banner * {
+                color: #333;
+            }
+
+        #title {
+            font-size: 23px;
+            letter-spacing: 2px;
+        }
+
+        .sysmenu .datagrid-cell {
+            cursor: pointer;
+            padding: 0;
+            height: 50px !important;
+            vertical-align: middle;
+            font-size: 15px;
+        }
+
+        .sysmenu td {
+            border: 0 !important;
+        }
+
+        .sysmenu .datagrid-cell > div {
+            padding: 15px;
+        }
+
+        .datagrid-toolbar .datagrid-btn-separator {
+            vertical-align: middle;
+            display: inline-block;
+            float: none
+        }
+
+        /*region 改正图标错位*/
+        .textbox-addon .fas {
+            padding-top: 7px;
+        }
+
+        .l-btn-icon.fas {
+            padding-top: 2px;
+        }
+        /*endregion*/
+         
+
+  
+    </style> 
+
+</head>
+<body style="height:100vh;margin:0;visibility:hidden">
+    <div id="frame" class="easyui-layout" data-options="fit:true">
+        <div id="banner" data-options="region:'north',border:false" style="overflow: hidden;border-bottom:1px solid #ddd">
+            <span id="title"></span>
+        </div>
+        <div data-options="region:'center',border:false" style="">
+            <div id="contentLayout" class="easyui-layout" data-options="fit:true">
+                <div id="content" class="content" data-options="region:'center',border:false" style="padding:20px 20px 0 20px;overflow: auto;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/easyui/jquery.min.js"></script>
+    <script src="scripts/easyui/jquery.easyui.min.js"></script>
+    <script src="scripts/easyui/locale/easyui-lang-zh_CN.js"></script>
+    <script src="scripts/vue.min.js"></script>
+    <script type="text/javascript" src="scripts/moment-with-locales.min.js"></script>
+    <script src="scripts/common.js"></script>
+
+
+    <script>
+        $.ajaxSetup({
+            cache: false
+        });
+
+        function onload() {
+            $(function () {
+                var title = "AppTime - 桌面时间管理";
+                $("#title").text(title);
+                document.title = title;
+
+                loadContent('review');
+            });
+        }
+
+        var contentLoad = null;
+        var contentLoadArgs = null;
+        var oldOnComplete = $.parser.onComplete;
+        $.parser.onComplete = function (dom) {
+
+            var layout = $('#contentLayout');
+            layout.layout('remove', 'south');
+
+            if (!dom) {
+                dom = $('body');
+                onload();
+            }
+            dom.css('display', 'none').css('visibility', 'visible').fadeIn();
+            oldOnComplete(dom);
+
+            var floatButtoms = $('.floatformbuttons');
+            if (floatButtoms.length) {
+                layout.layout('add',
+                    {
+                        region: 'south',
+                        border: false,
+                        minHeight: floatButtoms[0].offsetHeight
+                    }
+                );
+                var south = layout.layout('panel', 'south');
+                south.addClass('content');
+                floatButtoms.appendTo(south);
+            }
+
+            if (contentLoad) {
+                contentLoad.apply(window, contentLoadArgs);
+                contentLoad = null;
+            }
+        };
+
+        function loadContent(pageName, args) {
+            if (event) {
+                $('#contentTitle').text(event.target.innerText);
+            }
+
+            if (arguments.length == 2 && args instanceof Array) {
+                contentLoadArgs = args;
+            } else {
+                contentLoadArgs = [];
+                for (var i = 1; i < arguments.length; i++) {
+                    contentLoadArgs.push(arguments[i]);
+                }
+            }
+
+            $.get('content/' + pageName + '.html', function (html) {
+                contentLoad = null;
+                var content = $('#content');
+                content.html(html);
+                $.parser.parse(content);
+            });
+        }
+         
+        function invoke(method, args, callback) {
+            $.post("data/" + method, JSON.stringify({ args: args }), function (json) {
+                callback && callback(JSON.parse(json));
+            });
+        }
+
+        function makeDataUrl(method, args, attached) {
+            var obj = { args: args };
+            if (attached) {
+                $.extend(obj, attached);
+            }
+            return 'data/' + method + '?' + encodeURIComponent(JSON.stringify(obj));
+        } 
+
+    </script>
+</body>
+</html>

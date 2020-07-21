@@ -1,0 +1,729 @@
+<style>
+    #img {
+        width: 100%;
+        height: calc(100% - 250px);
+        border: none; 
+        object-fit: contain;
+        object-position: center center;
+    }
+
+    #info {
+        margin-bottom: 10px;
+    }
+
+        #info * {
+            font-weight: bold;
+            font-size: 30px;
+            vertical-align: middle;
+            height: 50px;
+            line-height: 50px;
+        }
+
+        #info img {
+            float: right;
+            height: 32px;
+            margin-top: 10px;
+            margin-right: 10px;
+        }
+
+    .tree td:nth-child(n+2) {
+        text-align: right;
+        width:100px;
+    }
+
+
+    .tree .child .text {
+        padding-left: 25px;
+    }
+
+    .tree .text {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        height: 30px;
+        line-height: 30px;
+    }
+
+    .tree .fas {
+        cursor: pointer;
+        text-align: center;
+        width: 20px;
+    }
+
+    .tree .fa-angle-right {
+        color: #ddd;
+    }
+
+    .datatable
+    {
+        width:100%;
+    }
+
+    .datatable td {
+        border-bottom: 1px dashed #ddd;
+        height: 30px;
+        padding-left:5px;
+        padding-right:5px;
+    }
+
+        .datatable tr:hover {
+           background-color:#f0f0f0;
+        } 
+
+    .tree .text img {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+        object-position: center center;
+        vertical-align: middle;
+    } 
+
+    #bar > *, #bar {
+        width: 100%;
+        cursor: grab;
+    }
+
+    .tree .tag {
+        margin-left:5px;
+        padding:3px;
+        font-size:12px;
+        color:white;
+        background-color:#666;
+        border-radius:2px;
+    }
+</style>
+
+<div id="menuTag" class="easyui-menu" style="width:100px;">
+    <div class="tagAs">
+        标记为
+        <div>
+            <div>TagAs</div>
+        </div>
+    </div>  
+    <div class="menu-sep"></div>
+    <div onclick="addTag()">新建标签...</div>
+    <div onclick="showTags()">管理标签...</div>
+    <div class="menu-sep"></div>
+    <div onclick="clearTag()">清除标签</div>
+</div>
+<i id="btnTagMenu" class="fas fa-tag" style="position:absolute;z-index:1000;font-size:10px;line-height:30px;color:#aaa "></i>
+<div id="layout" class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'center',border:false" style="padding-right:20px">
+        <div class="easyui-panel toolbar" border="false" style="width:100%">
+            <a href="javascript:view('app')" class="easyui-linkbutton" data-options="toggle:true,group:'view',plain:true,selected:true">应用视图</a>
+            <a href="javascript:view('tag')" class="easyui-linkbutton" data-options="toggle:true,group:'view',plain:true">标签视图</a>
+
+            <span style="float:right">
+                <a href="javascript:lastweek()" class="easyui-linkbutton period" data-options="toggle:true,group:'period',plain:true">上周</a>
+                <a href="javascript:week()" class="easyui-linkbutton period" data-options="toggle:true,group:'period',plain:true">本周</a>
+                <a href="javascript:yesterday()" class="easyui-linkbutton period" data-options="toggle:true,group:'period',plain:true">昨天</a>
+                <a href="javascript:today()" class="easyui-linkbutton period today" data-options="toggle:true,group:'period',plain:true">今天</a>
+                <input id="dtfrom" class="easyui-datetimebox" style="width:180px;"> ~
+                <input id="dtto" class="easyui-datetimebox" style="width: 180px;">
+            </span>
+        </div>
+        <img id="img" src="img/none.png" />
+        <div id="info">
+            <span class="time"></span>
+            <span class="app" style="float:right"></span>
+            <img class="icon" />
+        </div>
+        <div id="bar">
+            <canvas id="scale" style="height:100px"></canvas> 
+        </div>
+    </div>
+    <div data-options="region:'east',border:false,split:true" style="border-left: 1px solid #ddd;width:350px">
+        <div id="tree" class="datatable" style="width:100%;height:100%" >
+            <table class="tree" cellspacing="0" cellpadding="0">
+                <thead>
+                    <tr><td></td><td>时长</td><td>比例</td></tr>
+                </thead>
+                <tbody v-for="parent in tree">
+                    <tr class="parent" @mouseenter="mouseenter(parent)">
+                        <td>
+                            <div class="text" :title="parent.text">
+                                <i v-if="!parent.expanded" class="fas fa-angle-right" @click="expand(parent)"></i>
+                                <i v-else class="fas fa-angle-down" @click="collapse(parent)"></i>
+                                <img :src="makeDataUrl('getIcon', [parent.appId, false])" v-if="parent.appId" />
+                                {{parent.text}}
+                                <span class="tag" v-if="parent.tagText" v-text="parent.tagText"></span>
+                            </div>
+                        </td>
+                        <td>{{parent.time}}</td>
+                        <td>{{parent.percent}}</td>
+                    </tr>
+                    <tr class="child" v-for="child in parent.children" @mouseenter="mouseenter(child)">
+                        <td>
+                            <div class="text" :title="child.text">
+                                {{child.text}}
+                                <span class="tag" v-if="child.tagText" v-text="child.tagText"></span>
+                            </div>
+                        </td> 
+                        <td>{{child.time}}</td>
+                        <td>{{child.percent}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    var menuTag = $('#menuTag');
+    var btnTagMenu = $('#btnTagMenu'); 
+    var bar = $('#bar');
+
+    var timeFrom;
+    var timeTo;
+    var totalsecs;
+    var format = "YYYY-MM-DD HH:mm:ss";
+    var timeformat = "HH:mm:ss";
+    var apps = {};
+
+    var vueData = { tree: [] };
+    var scale = $('#scale')[0];
+
+    var dtfrom = $('#dtfrom');
+    var dtto = $('#dtto');
+
+    var dtEventDisabled = false;
+    function updateDt(from, to) {
+        if (!from) {
+            from = timeFrom;
+            to = timeTo;
+        }
+        dtEventDisabled = true;
+        dtfrom.datetimebox('setValue', timeFrom.format(format));
+        dtto.datetimebox('setValue', timeTo.format(format));
+        dtEventDisabled = false;
+    }
+
+    var currentView = 'app';
+    function view(mode) {
+        currentView = mode;
+        vueData.tree = [];
+        refresh();
+    }
+
+    function today() {
+        var now = moment();
+        timeFrom = moment({
+            year: now.year(),
+            month: now.month(),
+            day: now.date()
+        });
+        timeTo = moment({
+            year: now.year(),
+            month: now.month(),
+            day: now.date(),
+            hour: 23,
+            minute: 59,
+            second: 59
+        });
+        totalsecs = timeTo.diff(timeFrom, 'second');
+        updateDt();
+        refresh();
+    }
+
+    function yesterday() {
+        var now = moment();
+        timeFrom = moment({
+            year: now.year(),
+            month: now.month(),
+            day: now.date()
+        }).add(-1, 'day');
+        timeTo = moment({
+            year: timeFrom.year(),
+            month: timeFrom.month(),
+            day: timeFrom.date(),
+            hour: 23,
+            minute: 59,
+            second: 59
+        });
+        totalsecs = timeTo.diff(timeFrom, 'second');
+        updateDt();
+        refresh();
+    }
+
+    function week() {
+        var date = moment().day(1);
+        timeFrom = moment({
+            year: date.year(),
+            month: date.month(),
+            day: date.date()
+        });
+        date = moment().day(7);
+        timeTo = moment({
+            year: date.year(),
+            month: date.month(),
+            day: date.date(),
+            hour: 23,
+            minute: 59,
+            second: 59
+        });
+        totalsecs = timeTo.diff(timeFrom, 'second');
+        updateDt();
+        refresh();
+    }
+
+    function lastweek() {
+        var date = moment().day(1 - 7);
+        timeFrom = moment({
+            year: date.year(),
+            month: date.month(),
+            day: date.date()
+        });
+        date = moment().day(7 - 7);
+        timeTo = moment({
+            year: date.year(),
+            month: date.month(),
+            day: date.date(),
+            hour: 23,
+            minute: 59,
+            second: 59
+        });
+        totalsecs = timeTo.diff(timeFrom, 'second');
+        updateDt();
+        refresh();
+    }
+
+    function initTime() {
+        today();
+        $(".toolbar .today").linkbutton('select');
+    }
+
+    var lastX = -1;
+    var lastRequest = false;
+    var timeCursor;
+
+    function recalcBarPeriod() {
+        var secondsPrePixel = totalsecs / bar.width();
+        timeFrom = timeCursor.clone().add(-event.offsetX * secondsPrePixel, 'second');
+        timeTo = timeFrom.clone().add(totalsecs, 'second');
+        updateDt();
+    }
+
+    bar.on('wheel', function () {
+        console.log(event.deltaY);
+        totalsecs *= 1 + (event.deltaY > 0 ? 0.2 : -0.2);
+
+        //限制缩放范围
+        var secondsPrePixel = totalsecs / bar.width();
+        secondsPrePixel = Math.max(0.2, secondsPrePixel);
+        secondsPrePixel = Math.min(60 * 5, secondsPrePixel);
+        totalsecs = secondsPrePixel * bar.width();
+        console.log(secondsPrePixel);
+
+        recalcBarPeriod();
+        refresh();
+
+    });
+
+    bar.on("mousemove", function () {
+        if (lastRequest) {
+            return;
+        }
+        if (lastX == event.offsetX) {
+            return;
+        }
+        lastX = event.offsetX;
+
+        lastRequest = true;
+
+
+        if (event.buttons) {
+            recalcBarPeriod();
+            refresh();
+        }
+        else {
+            timeCursor = timeFrom.clone().add(event.offsetX / scale.width * totalsecs, "seconds");
+        }
+
+        invoke("getTimeInfo", [timeCursor.format(format)], function (info) {
+            lastRequest = false;
+            $('#info .time').text(timeCursor.format(format));
+
+            if (!info) {
+                $('#img').attr('src', 'img/none.png');
+                $('#info .app').html('');
+                $('#info img').hide();
+                return;
+            }
+
+            $('#img').attr(
+                'src',
+                makeDataUrl('getImage', [info])
+            )
+            $('#info .app').text(info.app);
+            $('#info .icon').attr('src', makeDataUrl('getIcon', [info.appId, true]))
+            $('#info img').show();
+
+        });
+    });
+
+    function clearTag() {
+        if (!mouseEnterItem) {
+            return;
+        }
+
+        if (mouseEnterItem.appId) {
+            invoke('clearAppTag', [mouseEnterItem.appId], refresh);
+        }
+        else if (mouseEnterItem.winId) {
+            invoke('clearWinTag', [mouseEnterItem.winId], refresh);
+        }
+    }
+
+    function refresh() {
+
+        //刷新时间轴
+        var img = new Image();
+        img.src = makeDataUrl(
+            'getPeriodBar',
+            [timeFrom.format(format), timeTo.format(format), currentView, bar.width()],
+            { flag: new Date().getTime() }
+        );
+        img.addEventListener('load', function () {
+            var ctx = scale.getContext('2d');
+
+            ctx.clearRect(0, 0, scale.width, scale.height);
+            ctx.drawImage(
+                img,
+                0, 0, bar.width(), bar.height()
+            );
+
+            //刷新时间刻度
+            var scaleLevels = [1, 2, 5, 10, 30, 60, 60 * 2, 60 * 4, 60 * 12, 60 * 24, 60 * 24 * 2, 60 * 24 * 5];
+            var secondsPrePixel = totalsecs / bar.width();
+            var scaleInterval = 1;
+            for (var i = 0; i < scaleLevels.length; i++) {
+                if (scaleLevels[i] * 60 / secondsPrePixel > 150) {
+                    scaleInterval = scaleLevels[i];
+                    break;
+                }
+            }
+
+            var time = moment({
+                year: timeFrom.year(),
+                month: timeFrom.month(),
+                day: timeFrom.date(),
+                hour: 0,
+                minute: 0,
+                second: 0
+            });
+
+            var align = Math.round(timeFrom.diff(time, 'minute') / scaleInterval) * scaleInterval;
+            time.add(align, 'minute'); 
+
+            ctx.fillStyle = "#eee"; 
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = "#333";
+
+            function drawText(ctx, text, x, y, color, font) {
+                ctx.font = font;
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "white";
+                ctx.strokeText(text, x, y);
+                ctx.stroke();
+                ctx.fillStyle = color;
+                ctx.fillText(text, x, y);
+            }
+
+            while (time.isBefore(timeTo)) {
+                var p = Math.round(time.diff(timeFrom, 'seconds') / totalsecs * scale.width);
+                ctx.beginPath();
+                ctx.moveTo(p, 0);
+
+                if (time.hour() == 0 && time.minute() == 0) {
+                    var MM = time.format('MM');
+                    var DD = time.format('DD');
+                    drawText(ctx, MM, p + 5, 5, "#333", '35px Consolas');
+                    var offset = ctx.measureText(MM);
+                    drawText(ctx, '/' + DD, p + 5 + offset.width, 5, "#333", '20px Consolas');
+                    ctx.strokeStyle = "#333";
+                    ctx.lineTo(p, 40);
+                }
+                else if (time.minute() == 0) {
+                    var hh = time.format('HH');
+                    var mm = time.format('mm');
+                    drawText(ctx, hh, p + 5, 5, "#333", '28px Consolas');
+                    var offset = ctx.measureText(hh);
+                    drawText(ctx, mm, p + 5 + offset.width, 5, "#333", '15px Consolas');
+                    ctx.strokeStyle = "#333";
+                    ctx.lineTo(p, 30);
+                }
+                else {
+
+                    drawText(ctx, time.format('mm'), p + 5, 5, "#999", '15px Consolas');
+
+                    ctx.strokeStyle = "#999";
+                    ctx.lineTo(p, 20);
+                }
+                time.add(scaleInterval, 'minute');
+                ctx.stroke();
+            }
+        });
+         
+        //刷新统计树
+        invoke('getTree', [timeFrom.format(format), timeTo.format(format), currentView, 0], function (data) {
+
+            var oldparents = {};
+            $.each(vueData.tree, (i, v) => {
+                oldparents[v.appId ? v.appId : v.tagId] = v;
+            });
+
+            $.each(data, (i, v) => { 
+                var old = oldparents[v.appId ? v.appId : v.tagId]; 
+                if (old) {
+                    v.expanded = old.expanded;
+                    if (v.expanded) {
+                        v.children = old.children;
+                        invoke(
+                            'getTree',
+                            [timeFrom.format(format), timeTo.format(format), currentView, v.appId ? v.appId : v.tagId],
+                            function (children) {
+                                v.children = children;
+                            }
+                        );
+                    }
+                }
+                else {
+                    v.expanded = false;
+                    v.children = [];
+                }
+            });
+
+            vueData.tree = data;
+        });
+
+    }
+
+    var columnTextCss = toArray(document.styleSheets)
+        .where(i => i.href == null)
+        .unionAll(i => i.cssRules)
+        .where(i => i.selectorText == '.tree .text')
+        .first();
+
+    var layout = $('#layout');
+    var east;
+    var center;
+
+    function onResize() {
+        columnTextCss.style.width = (east.width() - 170) + 'px';
+        scale.width = scale.clientWidth;
+        scale.height = scale.clientHeight;
+    }
+
+    var mouseEnterItem = null;
+     
+    function contentLoad() {
+        btnTagMenu.appendTo($(document.body));
+
+        function dtchanged() {
+            $(".toolbar .period .l-btn-selected").linkbutton('unselect');
+            if (!dtEventDisabled) {
+                timeFrom = moment(dtfrom.datetimebox('getValue'));
+                timeTo = moment(dtto.datetimebox('getValue'));
+                totalsecs = timeTo.diff(timeFrom, 'second');
+                refresh();
+            }
+        }
+        dtfrom.datetimebox({ onChange: dtchanged });
+        dtto.datetimebox({ onChange: dtchanged });
+
+        initTime();
+
+        //设置好列宽
+        east = layout.layout('panel', 'east');
+        center = layout.layout('panel', 'center');
+        onResize();
+
+        center.panel({
+            onResize: function (width, height) {
+                onResize();
+            }
+        });
+
+        onResize(); 
+         
+        window.setInterval(refresh, 1000);
+
+        new Vue({
+            el: '#tree',
+            data: vueData,
+            methods: {
+                expand: function (parent) {
+                    parent.expanded = true; 
+                    invoke(
+                        'getTree',
+                        [timeFrom.format(format), timeTo.format(format), currentView, parent.appId?parent.appId:parent.tagId],
+                        function (data) {
+                            parent.children = data;
+                            refresh();
+                        }
+                    );
+                },
+                collapse: function (parent) {
+                    parent.expanded = false;
+                    parent.children = [];
+                    refresh();
+                },
+                mouseenter: function (item) { 
+                    if ('tagId' in item) {
+                        btnTagMenu.hide();
+                        return;
+                    }
+                    mouseEnterItem = item;
+                    var div = $(event.srcElement).find('.text')[0]; 
+                    var rect = div.getBoundingClientRect();
+                    btnTagMenu.css({
+                        left: rect.right - 2 + 'px',
+                        top: rect.top + 'px'
+                    }).show();
+                } 
+            }
+        });
+
+        //初始化菜单
+        btnTagMenu.on('mouseenter', function () {
+            menuTag.menu('show', {
+                left: event.pageX,
+                top: event.pageY
+            });
+        });
+
+        refreshTags();
+    }
+</script>
+
+
+
+<style>
+    .datatable .buttons i
+    {
+        cursor:pointer;
+        padding-left:15px;
+    }
+</style>
+
+<div id="dlgTag" class="easyui-dialog" title=" 标签管理" style="width:400px;height:600px;padding:10px" 
+     data-options="iconCls: 'fas fa-tag', toolbar:'#dlgTagToolbar',closed:true">
+    <div id="dlgTagToolbar" style="padding:2px 0">
+        <a href="javascript:addTag()" class="easyui-linkbutton" data-options="iconCls:'fas fa-plus',plain:true">添加</a>
+    </div>
+    <table class="datatable tags" cellspacing="0" cellpadding="0">
+        <tr v-for="i in tags">
+            <td v-text="i.text"></td>
+            <td class="buttons" style="text-align:right;color:#aaa">
+                <i style="cursor:pointer;" class="fas fa-pen" @click="renameTag(i.id, i.text)"></i>
+                <i style="cursor:pointer;" class="far fa-trash-alt" @click="removeTag(i.id)"></i>
+            </td>
+        </tr>
+    </table> 
+</div>
+
+<script>
+
+    var vueDataTags = {
+        tags: []
+    };
+      
+    new Vue({
+        el: '.tags',
+        data: vueDataTags,
+        methods: {
+            renameTag: function (tagId, oldText) { 
+                $.messager.prompt(' ', '请输入新标签名', function (newText) {
+                    if (newText) {
+                        if (newText == oldText) {
+                            return;
+                        }
+                        invoke('renameTag', [tagId, newText], function (success) {
+                            if (!success) {
+                                $.messager.alert('', '标签名已经存在，请换一个试试。', 'info');
+                            }
+                            else {
+                                refreshTags();
+                            }
+                        });
+                    }
+                }); 
+                $('.messager-input').val(oldText).focus();
+            },
+            removeTag: function (tagId) { 
+                invoke('isTagUsed', [tagId], function (isUsed) { 
+                    if (isUsed) {
+                        $.messager.confirm(' ', '标签已经被使用，确认要删除吗?', function (r) {
+                            if (r) {
+                                invoke('removeTag', [tagId], refreshTags);
+                            }
+                        }); 
+                    }
+                    else {
+                        invoke('removeTag', [tagId], refreshTags);
+                    }
+                });
+            }
+        }
+    });
+
+    function showTags() { 
+        $('#dlgTag').dialog('center').dialog('open');
+    }
+
+    var menuTagAs;
+    function refreshTags(callback) {
+        invoke('getTags', [], function (data) {
+            vueDataTags.tags = data;
+
+            //移除原标记为
+            if (!menuTagAs) {
+                var tagAs = menuTag.menu('findItem', function (item) {
+                    return item.text == 'TagAs';
+                }); 
+                menuTagAs = $(tagAs.target).parents('.menu');
+            }
+            var menuItems = menuTagAs.find('.menu-item');
+            $.each(menuItems, function (i, v) { 
+                menuItems.menu('removeItem', v); 
+            });
+     
+            //增加新标记为
+            $.each(data, function (i, v)
+            {
+                menuTagAs.menu('appendItem', {
+                    text: v.text,
+                    onclick: function () {
+                        if (mouseEnterItem) {
+                            if (mouseEnterItem.appId) {
+                                invoke('tagApp', [mouseEnterItem.appId, v.id], refresh);
+                            }
+                            else { 
+                                invoke('tagWin', [mouseEnterItem.winId, v.id], refresh);
+                            }
+                        } 
+                    }
+                });
+            });
+            
+            callback && callback(data);
+        });
+    }
+
+    function addTag() { 
+        $.messager.prompt('', '请输入标签名', function (r) {
+            if (r) { 
+                invoke('addTag', [r], function (success) {
+                    if (!success) {
+                        $.messager.alert('', '标签名已经存在，请换一个试试。', 'info');
+                    }
+                    else {
+                        refreshTags();
+                    }
+                });
+            }
+        });
+    }
+
+</script>
