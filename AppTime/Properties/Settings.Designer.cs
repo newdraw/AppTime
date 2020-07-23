@@ -23,21 +23,27 @@ namespace AppTime.Properties {
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string DataPath {
             get {
                 return ((string)(this["DataPath"]));
             }
+            set {
+                this["DataPath"] = value;
+            }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("30")]
         public int RecordScreenDays {
             get {
                 return ((int)(this["RecordScreenDays"]));
+            }
+            set {
+                this["RecordScreenDays"] = value;
             }
         }
     }
