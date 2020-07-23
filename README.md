@@ -1,5 +1,5 @@
 # 时间去哪儿了？
-忙碌的一天匆匆而过，时间是如何分配的？哪些时间需要管控？
+忙碌的一天匆匆而过，时间是如何分配的？是否需要管控？
 
 # 试试这个吧
 ![](https://github.com/newdraw/AppTime/blob/master/files/tv.jpg) 
@@ -17,7 +17,7 @@
 ![](https://github.com/newdraw/AppTime/blob/master/files/playback.gif)
 
 #### 功能：分类管理
-加上标签，按类别统计。
+为应用或窗口加上标签，按类别统计。
 
 ![](https://github.com/newdraw/AppTime/blob/master/files/tag.jpg)
 =>
