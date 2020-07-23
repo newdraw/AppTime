@@ -11,6 +11,14 @@
 任意回溯桌面（可通过配置关闭）
 
 ![](https://github.com/newdraw/AppTime/blob/master/files/time.jpg)
+```html
+<video>
+  <source src="https://github.com/newdraw/AppTime/blob/master/files/playback.mp4">
+</video>
+```
+<video>
+  <source src="https://github.com/newdraw/AppTime/blob/master/files/playback.mp4">
+</video>
 ![](https://github.com/newdraw/AppTime/blob/master/files/playback.mp4)
 
 #### 分门别类
