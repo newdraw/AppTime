@@ -2,6 +2,8 @@
 忙碌的一天匆匆而过，时间是如何分配的？哪些时间需要管控？
 
 # 试试这个吧
+![](https://github.com/newdraw/AppTime/blob/master/files/tv.jpg) 
+
 #### 记录使用时间
 每个应用和窗口的使用时间精确到秒。
 
@@ -20,10 +22,7 @@
 ![](https://github.com/newdraw/AppTime/blob/master/files/tag.jpg)
 =>
 ![](https://github.com/newdraw/AppTime/blob/master/files/tagview.jpg)
-
-### 完整界面
-![](https://github.com/newdraw/AppTime/blob/master/files/tv.jpg) 
-
+ 
 # 使用方法
 1、下载最新版本；
 
