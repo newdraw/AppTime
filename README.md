@@ -24,7 +24,7 @@
 ![](https://github.com/newdraw/AppTime/blob/master/files/tagview.jpg)
  
 # 使用方法
-1、下载[Release.zip](https://github.com/newdraw/AppTime/raw/master/Release.zip)，解压到任意目录；
+1、下载[Release.zip](https://github.com/newdraw/AppTime/raw/master/Release%20v0.11.zip)，解压到任意目录；
 
 2、打开AppTime.exe;
 
