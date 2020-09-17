@@ -319,8 +319,32 @@ namespace AppTime
             }
 
             using var img = GetScreen();
-            img.Save(path, jpgcodec, ep);
+            using var mem = new MemoryStream();
+            img.Save(mem, jpgcodec, ep);
+            var file = new ImageFile { Data = mem.ToArray(), FileName = path }; 
+            ScreenBuffer.Add(file.FileName, file);
+            BufferSize += file.Data.Length; 
+            if (BufferSize > Settings.Default.ScreenBufferMB * 1024 * 1024)
+            {
+                FlushScreenBuffer();
+            }
         }
+
+        public void FlushScreenBuffer()
+        {
+            Parallel.ForEach(ScreenBuffer.Values, i => File.WriteAllBytes(i.FileName, i.Data));
+            ScreenBuffer.Clear();
+            BufferSize = 0;
+        }
+
+        public class ImageFile
+        {
+            public string FileName;
+            public byte[] Data;
+        }
+
+        public Dictionary<string, ImageFile> ScreenBuffer = new Dictionary<string, ImageFile>();
+        int BufferSize = 0;
 
         Bitmap GetScreen()
         {

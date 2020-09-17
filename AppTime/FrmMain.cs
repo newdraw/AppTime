@@ -37,14 +37,15 @@ namespace AppTime
                 txtDataPath.Text = Settings.Default.DataPath;
             }
             cboRecordScreen.DataSource = new[] {
-                new {Text="记录最近30天", Value=30},
-                new {Text="记录最近15天", Value=15},
-                new {Text="无限制记录", Value=int.MaxValue},
-                new {Text="不记录", Value=0},
+                new {Text="最近30天", Value=30},
+                new {Text="最近15天", Value=15},
+                new {Text="无限制", Value=int.MaxValue},
+                new {Text="不留存", Value=0},
             };
             cboRecordScreen.DisplayMember = "Text";
             cboRecordScreen.ValueMember = "Value";
             cboRecordScreen.SelectedValue = Settings.Default.RecordScreenDays;
+            numScreenBufferMB.Value = Settings.Default.ScreenBufferMB;
         }
 
         private void btnOpen_Click(object sender, EventArgs e)
@@ -65,7 +66,9 @@ namespace AppTime
         bool cancelClose = true;
         private void btnExit_Click(object sender, EventArgs e)
         {
+            this.Hide();
             cancelClose = false;
+            Program.recorder.FlushScreenBuffer();
             this.Close();
         }
 
@@ -80,15 +83,16 @@ namespace AppTime
             try
             {
                 Directory.CreateDirectory(txtDataPath.Text);
-                Settings.Default["DataPath"] = txtDataPath.Text == Application.StartupPath ? "" : txtDataPath.Text;
+                Settings.Default.DataPath = txtDataPath.Text == Application.StartupPath ? "" : txtDataPath.Text;
+                
                 Program.recorder.BuildDataPath();
             }
             catch
             {
                 MessageBox.Show("数据存储位置无效，请重新选择。");
             }
-
-            Settings.Default["RecordScreenDays"] = (int)cboRecordScreen.SelectedValue;
+            Settings.Default.ScreenBufferMB = (int)numScreenBufferMB.Value;
+            Settings.Default.RecordScreenDays = (int)cboRecordScreen.SelectedValue;
             Settings.Default.Save();
             this.Hide();
         }

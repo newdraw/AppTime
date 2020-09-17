@@ -350,7 +350,9 @@ limit 1",
             }
             return null;
         }
-          
+
+        static byte[] imageNone = null;
+
         public byte[] getImage(TimeInfo info)
         {
 
@@ -360,14 +362,23 @@ limit 1",
                 $"{info.timeStart:HHmmss}+{(int)(info.timeSrc - info.timeStart).TotalSeconds}.jpg"
             );
 
-            if (!File.Exists(path) || new FileInfo(path).Length == 0)
-            { 
-                return File.ReadAllBytes(Path.Combine(Server.WebRootPath, "img", "none.png"));
+            if (File.Exists(path) && new FileInfo(path).Length > 0)
+            {
+                return File.ReadAllBytes(path);
             }
 
+            if (Recorder.ScreenBuffer.TryGetValue(path, out var file))
+            {
+                return file.Data;
+            }
 
-            return File.ReadAllBytes(path); 
-        } 
+            if (imageNone == null)
+            {
+                imageNone = File.ReadAllBytes(Path.Combine(Server.WebRootPath, "img", "none.png"));
+            }
+
+            return imageNone;
+        }
 
         #endregion
 
