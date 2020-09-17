@@ -31,3 +31,6 @@
 3、注意右下角托盘图标。
 
 ![](https://github.com/newdraw/AppTime/blob/master/files/icon.jpg) 
+
+# 升级注意
+如需升级老版本的AppTime，请解压覆盖到老版本目录，但请不要覆盖data.db文件。
