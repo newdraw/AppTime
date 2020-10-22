@@ -17,6 +17,7 @@ namespace AppTime
     {
 
         public const int Port = 15720;
+        public static InitDB init;
         public static Recorder recorder;
         public static WebServer server;
         public static Controller controller;
@@ -28,6 +29,9 @@ namespace AppTime
         [STAThread]
         static void Main()
         {
+            init = new InitDB();
+            init.Start();
+
             recorder = new Recorder();
             recorder.Start();
 

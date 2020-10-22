@@ -92,6 +92,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InitDB.cs" />
     <Compile Include="WinApi.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="DB.cs" />
