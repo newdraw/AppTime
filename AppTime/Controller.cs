@@ -6,11 +6,14 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using static AppTime.Recorder;
 
 namespace AppTime
 {
@@ -34,7 +37,10 @@ namespace AppTime
             if(!appColors.TryGetValue(appId, out var color))
             { 
                 var text = db.ExecuteValue<string>($"select text from app where id={appId}");
-                color = appColors[appId] = getColor(text);
+                lock (appColors)
+                {
+                    color = appColors[appId] = getColor(text);
+                }
             }
             return color;
         }
@@ -106,8 +112,9 @@ order by p.timeStart
 ",
                 timefrom, timeto
                 );
-            } 
+            }
 
+            //绘制PeriodBar，直接写内存比gdi+快
             var imgdata = new int[width]; 
             foreach (var period in data)
             {
@@ -303,16 +310,38 @@ order by days desc
             return result;
         }
  
-
+        /// <summary>
+        /// 时间
+        /// </summary>
         public class TimeInfo
         {
+            /// <summary>
+            /// 原始时间
+            /// </summary>
             public DateTime timeSrc;
+            /// <summary>
+            /// 切换到应用的时间
+            /// </summary>
             public DateTime timeStart;
+            /// <summary>
+            /// 应用名
+            /// </summary>
             public string app;
+            /// <summary>
+            /// 应用id
+            /// </summary>
             public long appId;
+            /// <summary>
+            /// 窗口标题
+            /// </summary>
             public string title;
         }
 
+        /// <summary>
+        /// 获取指定时间的记录信息
+        /// </summary>
+        /// <param name="time"></param>
+        /// <returns></returns>
         public TimeInfo getTimeInfo(DateTime time)
         {
             
@@ -353,31 +382,117 @@ limit 1",
 
         static byte[] imageNone = null;
 
+        TimeSpan getTime(string file)
+        {
+            return TimeSpan.ParseExact(Path.GetFileNameWithoutExtension(file), "hhmmss", CultureInfo.InvariantCulture);
+        }
+         
+
+        /// <summary>
+        /// 查找不满足条件的最后一个元素
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="items"></param>
+        /// <param name="largerThenTarget"></param>
+        /// <returns></returns>
+        T find<T>(IList<T> items, Func<T, bool> largerThenTarget)
+        {
+            if (items.Count == 0)
+            {
+                return default;
+            }
+
+            var match = items[0];
+            if (largerThenTarget(match))
+            {
+                return default;
+            }
+
+            for (var i = 1; i < items.Count; i++)
+            {
+                var item = items[i];
+                if (largerThenTarget(item))
+                {
+                    break;
+                }
+                match = item;
+            }
+            return match;
+        }
+
+
+        static Thread lastThread;
+        static readonly object threadLock = new object();
+        /// <summary>
+        /// 获取指定时间的截图
+        /// </summary>
+        /// <param name="info"></param>
+        /// <returns></returns>
         public byte[] getImage(TimeInfo info)
         {
-
-            var path = Path.Combine(
-                Recorder.ScreenPath,
-                info.timeSrc.ToString("yyyyMMdd"),
-                $"{info.timeStart:HHmmss}+{(int)(info.timeSrc - info.timeStart).TotalSeconds}.jpg"
-            );
-
-            if (File.Exists(path) && new FileInfo(path).Length > 0)
-            {
-                return File.ReadAllBytes(path);
-            }
-
-            if (Recorder.ScreenBuffer.TryGetValue(path, out var file))
-            {
-                return file.Data;
-            }
 
             if (imageNone == null)
             {
                 imageNone = File.ReadAllBytes(Path.Combine(Server.WebRootPath, "img", "none.png"));
             }
 
-            return imageNone;
+            //只响应最后一个请求，避免运行多个ffmpeg占用资源。
+            lock (threadLock)
+            {
+                Ffmpeg.KillLastFfmpeg();
+                if (lastThread != null && lastThread.IsAlive)
+                {
+                    lastThread.Abort();
+                }
+                lastThread = Thread.CurrentThread;
+            }
+
+            try
+            {
+                //先从buffer中找
+                {
+                    var buffers = new List<MemoryBuffer>(Recorder.flushing);
+                    if (Recorder.buffer != null)
+                    {
+                        buffers.Add(Recorder.buffer);
+                    }
+
+                    var match = find(buffers, i => i.StartTime > info.timeSrc);
+                    if (match != null)
+                    {
+                        var time = info.timeSrc - match.StartTime;
+                        var frame = find(match.Frames, f => (match.StartTime + f.Time) > info.timeSrc);
+                        if (frame != null)
+                        {
+                            return frame.Data;
+                        }
+                    }
+                }
+
+
+                //从文件系统找 
+                {
+                    var path = Recorder.getFileName(info.timeSrc); 
+                    var files = (from f in Directory.GetFiles(Path.GetDirectoryName(path), "????????." + Recorder.ExName) orderby f select f).ToArray(); 
+                    var needtime = info.timeSrc.TimeOfDay;// getTime(path);
+                    var match = find(files, i => getTime(i) > needtime);
+                    if (match != null)
+                    { 
+                        var time = needtime - getTime(match);
+                        var data = Ffmpeg.Snapshot(match, time); 
+                        if (data != null)
+                        {
+                            return data;
+                        }
+                    }
+
+                    return imageNone;
+                }
+            }
+            catch (ThreadAbortException)
+            {
+                return imageNone;
+            }
         }
 
         #endregion

@@ -20,6 +20,7 @@ namespace AppTime
 {
     class Recorder
     {
+        public const string ExName = "mkv";
 
         public Recorder()
         {
@@ -31,7 +32,7 @@ namespace AppTime
         /// </summary>
         public int IntervalMs = 1000;
         public void Start()
-        {
+        { 
             new Thread(RecorderThreadProc) { IsBackground = true }.Start();
         }
 
@@ -124,29 +125,34 @@ namespace AppTime
                 try
                 {
                     text = process.MainModule.FileVersionInfo.FileDescription;
+
+                    using var iconl = GetIcon(process.MainModule.FileName, true);
+                    SaveIcon(iconl, GetIconPath(nextAppId, true));
+
+                    using var icons = GetIcon(process.MainModule.FileName, false);
+                    SaveIcon(icons, GetIconPath(nextAppId, false));
                 }
-                catch(Win32Exception ex)
+                catch (Win32Exception)
                 {
                     //ignore
                 }
+                catch (FileNotFoundException)
+                {
+                    //ignore
+                }
+
                 if (string.IsNullOrWhiteSpace(text))
                 {
                     text = process.ProcessName;
-                }
+                } 
 
-                using var iconl = GetIcon(process.MainModule.FileName, true);
-                SaveIcon(iconl, GetIconPath(nextAppId, true));
-
-                using var icons = GetIcon(process.MainModule.FileName, false);
-                SaveIcon(icons, GetIconPath(nextAppId, false)); 
 
                 db.Execute(
                     "insert into app (id, process, text, tagId) values(@id, @process, @text, 0)",
                     new SQLiteParameter("id", nextAppId),
                     new SQLiteParameter("process", name),
                     new SQLiteParameter("text", text)
-                );
-
+                ); 
                 
                 app = new app { id = nextAppId, process = name };
                 nextAppId++;
@@ -166,11 +172,18 @@ namespace AppTime
             var largeIconPath = GetIconPath(app.id, true);
             if (!File.Exists(largeIconPath))
             {
-                using var iconl = GetIcon(process.MainModule.FileName, true);
-                SaveIcon(iconl, largeIconPath);
+                try
+                {
+                    using var iconl = GetIcon(process.MainModule.FileName, true);
+                    SaveIcon(iconl, largeIconPath);
 
-                using var icons = GetIcon(process.MainModule.FileName, false);
-                SaveIcon(icons, GetIconPath(app.id, false));
+                    using var icons = GetIcon(process.MainModule.FileName, false);
+                    SaveIcon(icons, GetIconPath(app.id, false));
+                }
+                catch(Win32Exception)
+                {
+
+                }
             }
             return app;
 
@@ -246,41 +259,59 @@ namespace AppTime
 
                 if (lastApp == null || lastApp.AppProcess != appname || lastApp.WinText != winText)
                 {
+                   
                     var win = GetWin(process, winText);
                     lastApp = new App { WinId = win.id, AppProcess = appname, TimeStart = now, WinText = winText };
                     db.Execute(
                         "insert into [period](winid, timeStart, timeEnd) values(@v0, @v1, @v1)",
                         win.id, now
-                    );
+                    ); 
                 }
 
-                Screenshot(now, lastApp);
+                Screenshot(now);
 
+                //等到下一个周期
                 var nextTime = now.AddMilliseconds(IntervalMs);
                 now = DateTime.Now;
-                Thread.Sleep(nextTime > now ? nextTime - now : TimeSpan.Zero);//等到下一个周期
+                if(nextTime > now)
+                {
+                    Thread.Sleep(nextTime - now);
+                } 
             }
         }
-
-
-        EncoderParameters ep = null;
+         
 
         string DataPath => string.IsNullOrWhiteSpace(Settings.Default.DataPath) ? Application.StartupPath : Settings.Default.DataPath;
         public string ScreenPath => Path.Combine(DataPath, "images");
         public string IconPath => Path.Combine(DataPath, "icons");
         ImageCodecInfo jpgcodec = ImageCodecInfo.GetImageDecoders().First(codec => codec.MimeType == "image/jpeg");
 
+        ///// <summary>
+        ///// 获取图片文件路径
+        ///// </summary>
+        ///// <param name="timeStart"></param>
+        ///// <param name="timeImage"></param>
+        ///// <returns></returns>
+        //public string getImageFile(DateTime timeStart, DateTime timeImage)
+        //{
+        //    var folder = Path.Combine(ScreenPath, timeImage.ToString("yyyyMMdd"));
+        //    var filename = $"{timeStart:HHmmss}+{Math.Round((timeImage - timeStart).TotalSeconds)}";
+        //    return Path.Combine(folder, $"{filename}.jpg");
+        //}
 
-        public string getImageFile(DateTime timeStart, DateTime timeImage)
+        public string getFileName(DateTime time)
         {
-            var folder = Path.Combine(ScreenPath, timeImage.ToString("yyyyMMdd"));
-            var filename = $"{timeStart:HHmmss}+{Math.Round((timeImage - timeStart).TotalSeconds)}";
-            return Path.Combine(folder, $"{filename}.jpg");
+            return Path.Combine(ScreenPath, $"{time:yyyyMMdd}", $"{time:HHmmss}." + Recorder.ExName);
         }
 
         DateTime lastCheck = DateTime.MinValue.Date;
 
-        void Screenshot(DateTime now, App lastApp)
+        /// <summary>
+        /// 截图
+        /// </summary>
+        /// <param name="now"></param>
+        /// <param name="lastApp"></param>
+        void Screenshot(DateTime now)
         {
             //检查记录天数限制
             if (lastCheck != now.Date)
@@ -303,48 +334,70 @@ namespace AppTime
             if (Settings.Default.RecordScreenDays == 0)
             {
                 return;
-            }
+            } 
 
-            var path = getImageFile(lastApp.TimeStart, now);
+            if (buffer == null)
+            {
+                buffer = new MemoryBuffer(now); 
+            } 
+
+            using var img = GetScreen();
+            using var mem = new MemoryStream();
+            img.Save(mem, ImageFormat.Jpeg);
+            buffer.Frames.Add(new Frame(now - buffer.StartTime, mem.ToArray()));
+            if ((now - buffer.StartTime).TotalSeconds >= Settings.Default.BufferSeconds || now.Date != buffer.StartTime.Date)//Settings.Default.BufferSeconds
+            {
+                FlushScreenBuffer();
+            } 
+        }
+
+
+        public void FlushScreenBuffer()
+        {
+            //切换到新buffer
+            var newBuffer = new MemoryBuffer(DateTime.Now);
+            var b = buffer;
+            buffer = newBuffer;
+
+            //加入flushing
+            lock (flushing)
+            {
+                flushing.Add(b);
+            }
+            var path = getFileName(b.StartTime);
             var folder = Path.GetDirectoryName(path);
             if (!Directory.Exists(folder))
             {
                 Directory.CreateDirectory(folder);
             }
-
-            if (ep == null)
+            new Thread(() =>
             {
-                ep = new EncoderParameters(1);
-                ep.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, new long[] { 10 });
-            }
-
-            using var img = GetScreen();
-            using var mem = new MemoryStream();
-            img.Save(mem, jpgcodec, ep);
-            var file = new ImageFile { Data = mem.ToArray(), FileName = path }; 
-            ScreenBuffer.Add(file.FileName, file);
-            BufferSize += file.Data.Length; 
-            if (BufferSize > Settings.Default.ScreenBufferMB * 1024 * 1024)
+                Ffmpeg.Save(getFileName(b.StartTime), b.Frames.ToArray());
+                lock (flushing)
+                {
+                    flushing.Remove(b);
+                }
+            })
             {
-                FlushScreenBuffer();
+                Priority = ThreadPriority.Lowest,
+                IsBackground = false
+            }.Start();
+        }
+
+
+        public class MemoryBuffer
+        {
+            public readonly DateTime StartTime; 
+            public readonly List<Frame> Frames = new List<Frame>();
+            public MemoryBuffer(DateTime startTime)
+            {
+                StartTime = startTime; 
             }
-        }
+        } 
 
-        public void FlushScreenBuffer()
-        {
-            Parallel.ForEach(ScreenBuffer.Values, i => File.WriteAllBytes(i.FileName, i.Data));
-            ScreenBuffer.Clear();
-            BufferSize = 0;
-        }
+        public MemoryBuffer buffer;
 
-        public class ImageFile
-        {
-            public string FileName;
-            public byte[] Data;
-        }
-
-        public Dictionary<string, ImageFile> ScreenBuffer = new Dictionary<string, ImageFile>();
-        int BufferSize = 0;
+        public List<MemoryBuffer> flushing = new List<MemoryBuffer>(); 
 
         Bitmap GetScreen()
         {

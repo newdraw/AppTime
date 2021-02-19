@@ -42,19 +42,27 @@
             this.btnSetting = new System.Windows.Forms.ToolStripMenuItem();
             this.btnAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.btnExit = new System.Windows.Forms.ToolStripMenuItem();
-            this.numScreenBufferMB = new System.Windows.Forms.NumericUpDown();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.trackImageQuality = new System.Windows.Forms.TrackBar();
             this.label4 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.trackBufferSeconds = new System.Windows.Forms.TrackBar();
+            this.lblBufferSeconds = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.chkAutoRun = new System.Windows.Forms.CheckBox();
             this.contextMenuStrip.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numScreenBufferMB)).BeginInit();
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trackImageQuality)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBufferSeconds)).BeginInit();
             this.SuspendLayout();
             // 
             // txtDataPath
             // 
-            this.txtDataPath.Location = new System.Drawing.Point(132, 49);
+            this.txtDataPath.Location = new System.Drawing.Point(132, 34);
             this.txtDataPath.Name = "txtDataPath";
             this.txtDataPath.Size = new System.Drawing.Size(494, 21);
             this.txtDataPath.TabIndex = 0;
@@ -62,7 +70,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(40, 52);
+            this.label1.Location = new System.Drawing.Point(40, 37);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(77, 12);
             this.label1.TabIndex = 1;
@@ -70,7 +78,7 @@
             // 
             // btnDataPath
             // 
-            this.btnDataPath.Location = new System.Drawing.Point(641, 47);
+            this.btnDataPath.Location = new System.Drawing.Point(641, 32);
             this.btnDataPath.Name = "btnDataPath";
             this.btnDataPath.Size = new System.Drawing.Size(75, 23);
             this.btnDataPath.TabIndex = 2;
@@ -94,7 +102,7 @@
             // 
             // btnOK
             // 
-            this.btnOK.Location = new System.Drawing.Point(368, 293);
+            this.btnOK.Location = new System.Drawing.Point(368, 360);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(158, 45);
             this.btnOK.TabIndex = 6;
@@ -105,7 +113,7 @@
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(558, 293);
+            this.btnCancel.Location = new System.Drawing.Point(558, 360);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(158, 45);
             this.btnCancel.TabIndex = 7;
@@ -159,45 +167,107 @@
             this.btnExit.Text = "退出(&E)";
             this.btnExit.Click += new System.EventHandler(this.btnExit_Click);
             // 
-            // numScreenBufferMB
-            // 
-            this.numScreenBufferMB.Location = new System.Drawing.Point(98, 69);
-            this.numScreenBufferMB.Maximum = new decimal(new int[] {
-            50,
-            0,
-            0,
-            0});
-            this.numScreenBufferMB.Name = "numScreenBufferMB";
-            this.numScreenBufferMB.Size = new System.Drawing.Size(74, 21);
-            this.numScreenBufferMB.TabIndex = 9;
-            // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.label8);
+            this.groupBox1.Controls.Add(this.label7);
+            this.groupBox1.Controls.Add(this.trackImageQuality);
             this.groupBox1.Controls.Add(this.label4);
+            this.groupBox1.Controls.Add(this.label6);
+            this.groupBox1.Controls.Add(this.label5);
+            this.groupBox1.Controls.Add(this.trackBufferSeconds);
+            this.groupBox1.Controls.Add(this.lblBufferSeconds);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.cboRecordScreen);
-            this.groupBox1.Controls.Add(this.numScreenBufferMB);
             this.groupBox1.Location = new System.Drawing.Point(34, 85);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(682, 176);
+            this.groupBox1.Size = new System.Drawing.Size(682, 251);
             this.groupBox1.TabIndex = 10;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "记录屏幕";
             // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(80, 125);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(53, 12);
+            this.label8.TabIndex = 19;
+            this.label8.Text = "节约磁盘";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(382, 125);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(41, 12);
+            this.label7.TabIndex = 16;
+            this.label7.Text = "更清晰";
+            // 
+            // trackImageQuality
+            // 
+            this.trackImageQuality.Location = new System.Drawing.Point(89, 92);
+            this.trackImageQuality.Maximum = 100;
+            this.trackImageQuality.Minimum = 1;
+            this.trackImageQuality.Name = "trackImageQuality";
+            this.trackImageQuality.Size = new System.Drawing.Size(328, 45);
+            this.trackImageQuality.TabIndex = 18;
+            this.trackImageQuality.TickFrequency = 50;
+            this.trackImageQuality.Value = 51;
+            // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(178, 73);
+            this.label4.Location = new System.Drawing.Point(14, 96);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(17, 12);
-            this.label4.TabIndex = 13;
-            this.label4.Text = "MB";
+            this.label4.Size = new System.Drawing.Size(53, 12);
+            this.label4.TabIndex = 17;
+            this.label4.Text = "图片质量";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(382, 196);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(53, 12);
+            this.label6.TabIndex = 16;
+            this.label6.Text = "节约磁盘";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(80, 196);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(53, 12);
+            this.label5.TabIndex = 15;
+            this.label5.Text = "节约内存";
+            // 
+            // trackBufferSeconds
+            // 
+            this.trackBufferSeconds.Location = new System.Drawing.Point(89, 159);
+            this.trackBufferSeconds.Maximum = 1800;
+            this.trackBufferSeconds.Minimum = 60;
+            this.trackBufferSeconds.Name = "trackBufferSeconds";
+            this.trackBufferSeconds.Size = new System.Drawing.Size(328, 45);
+            this.trackBufferSeconds.TabIndex = 14;
+            this.trackBufferSeconds.TickFrequency = 870;
+            this.trackBufferSeconds.Value = 930;
+            this.trackBufferSeconds.Scroll += new System.EventHandler(this.trackBufferSeconds_Scroll);
+            // 
+            // lblBufferSeconds
+            // 
+            this.lblBufferSeconds.AutoSize = true;
+            this.lblBufferSeconds.Location = new System.Drawing.Point(479, 162);
+            this.lblBufferSeconds.Name = "lblBufferSeconds";
+            this.lblBufferSeconds.Size = new System.Drawing.Size(29, 12);
+            this.lblBufferSeconds.TabIndex = 13;
+            this.lblBufferSeconds.Text = "分钟";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(15, 73);
+            this.label3.Location = new System.Drawing.Point(14, 162);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(53, 12);
             this.label3.TabIndex = 12;
@@ -212,11 +282,22 @@
             this.label2.TabIndex = 11;
             this.label2.Text = "留存时间";
             // 
+            // chkAutoRun
+            // 
+            this.chkAutoRun.AutoSize = true;
+            this.chkAutoRun.Location = new System.Drawing.Point(42, 362);
+            this.chkAutoRun.Name = "chkAutoRun";
+            this.chkAutoRun.Size = new System.Drawing.Size(114, 16);
+            this.chkAutoRun.TabIndex = 11;
+            this.chkAutoRun.Text = "开机自动启动(&A)";
+            this.chkAutoRun.UseVisualStyleBackColor = true;
+            // 
             // FrmMain
             // 
             this.AcceptButton = this.btnOK;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(754, 361);
+            this.ClientSize = new System.Drawing.Size(751, 429);
+            this.Controls.Add(this.chkAutoRun);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
@@ -234,9 +315,10 @@
             this.Load += new System.EventHandler(this.FrmMain_Load);
             this.Shown += new System.EventHandler(this.FrmMain_Shown);
             this.contextMenuStrip.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.numScreenBufferMB)).EndInit();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trackImageQuality)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBufferSeconds)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -256,11 +338,18 @@
         private System.Windows.Forms.ToolStripMenuItem btnSetting;
         private System.Windows.Forms.ToolStripMenuItem btnAbout;
         private System.Windows.Forms.ToolStripMenuItem btnExit;
-        private System.Windows.Forms.NumericUpDown numScreenBufferMB;
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label lblBufferSeconds;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TrackBar trackBufferSeconds;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TrackBar trackImageQuality;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.CheckBox chkAutoRun;
     }
 }
 

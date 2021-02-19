@@ -15,7 +15,6 @@ namespace AppTime
 {
     static class Program
     {
-
         public const int Port = 15720;
         public static InitDB init;
         public static Recorder recorder;
