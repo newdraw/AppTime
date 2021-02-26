@@ -334,21 +334,21 @@ namespace AppTime
             if (Settings.Default.RecordScreenDays == 0)
             {
                 return;
-            } 
+            }
 
             if (buffer == null)
             {
-                buffer = new MemoryBuffer(now); 
-            } 
+                buffer = new MemoryBuffer(now);
+            }
 
             using var img = GetScreen();
             using var mem = new MemoryStream();
             img.Save(mem, ImageFormat.Jpeg);
             buffer.Frames.Add(new Frame(now - buffer.StartTime, mem.ToArray()));
-            if ((now - buffer.StartTime).TotalSeconds >= Settings.Default.BufferSeconds || now.Date != buffer.StartTime.Date)//Settings.Default.BufferSeconds
+            if ((now - buffer.StartTime).TotalSeconds >= 10 * 60 || now.Date != buffer.StartTime.Date) //固定为10mins，防止保存时间长，减少出问题时影响的时长。
             {
                 FlushScreenBuffer();
-            } 
+            }
         }
 
 
@@ -379,7 +379,7 @@ namespace AppTime
                 }
             })
             {
-                Priority = ThreadPriority.Lowest,
+                Priority = ThreadPriority.BelowNormal,
                 IsBackground = false
             }.Start();
         }

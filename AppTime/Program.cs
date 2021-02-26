@@ -28,6 +28,10 @@ namespace AppTime
         [STAThread]
         static void Main()
         {
+#if DEBUG
+            CopyWebUI();
+#endif
+
             init = new InitDB();
             init.Start();
 
@@ -36,12 +40,43 @@ namespace AppTime
 
             controller = new Controller();
             server = new WebServer();
-            server.Start(Port, controller, "../../webui");
+            server.Start(Port, controller, "./webui");
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(frmMain = new FrmMain());
-        } 
+        }
 
+
+        static void CopyWebUI()
+        {
+            CopyDirectory("../../webui", "./webui");
+        }
+
+        static void CopyDirectory(string src, string dest)
+        {
+            if (!Directory.Exists(dest))
+            {
+                Directory.CreateDirectory(dest);
+            }
+
+            foreach (var srcfile in Directory.GetFiles(src))
+            {
+                var destfile = Path.Combine(dest, Path.GetFileName(srcfile));
+                //只复制更新的文件
+                if (File.Exists(destfile) && File.GetLastWriteTime(srcfile) == File.GetLastWriteTime(destfile))
+                {
+                    continue;
+                }
+
+                File.Copy(srcfile, destfile, true);
+            }
+
+            foreach (var srcdir in Directory.GetDirectories(src))
+            {
+                var destdir = Path.Combine(dest, Path.GetFileName(srcdir));
+                CopyDirectory(srcdir, destdir);
+            }
+        }
     }
 }

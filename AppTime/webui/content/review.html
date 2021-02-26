@@ -91,6 +91,14 @@
         background-color:#666;
         border-radius:2px;
     }
+
+    .loadingImage {
+        position: absolute;
+        background-color: rgba(255,255,255,.95);
+        padding: 10px;
+        border-radius: 50%;
+    }
+
 </style>
 
 <div id="menuTag" class="easyui-menu" style="width:100px;">
@@ -167,7 +175,9 @@
         </div>
     </div>
 </div>
-
+<div class="loadingImage">
+    <i class="fas fa-spinner fa-spin fa-4x"></i>
+</div>
 <script>
 
     var menuTag = $('#menuTag');
@@ -355,12 +365,30 @@
                 'src',
                 makeDataUrl('getImage', [info])
             )
+            showLoadingImage();
             $('#info .app').text(info.app);
             $('#info .icon').attr('src', makeDataUrl('getIcon', [info.appId, true]))
             $('#info img').show();
 
         });
     });
+
+    var timerShowLoading;
+    function showLoadingImage() {
+        timerShowLoading && window.clearTimeout(timerShowLoading);
+        timerShowLoading = window.setTimeout(() => {
+            timerShowLoading = null;
+            relocateLoadingImage();
+            $('.loadingImage').fadeIn(); 
+        }, 500);
+    }
+
+    function hideLoadingImage() { 
+        timerShowLoading && window.clearTimeout(timerShowLoading);
+        $('.loadingImage').fadeOut(100);
+    }
+
+    $('#img').on("load", hideLoadingImage);
 
     function clearTag() {
         if (!mouseEnterItem) {
@@ -507,12 +535,21 @@
 
     var layout = $('#layout');
     var east;
-    var center;
+    var center; 
+
+    function relocateLoadingImage() {
+        var rect = $('#img')[0].getBoundingClientRect();
+        $('.loadingImage').css({
+            left: rect.x + rect.width / 2,
+            top: rect.y + rect.height / 2
+        });
+    }
 
     function onResize() {
         columnTextCss.style.width = (east.width() - 170) + 'px';
         scale.width = scale.clientWidth;
         scale.height = scale.clientHeight;
+        relocateLoadingImage();
     }
 
     var mouseEnterItem = null;

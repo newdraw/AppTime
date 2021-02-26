@@ -370,6 +370,8 @@ limit 1",
             };
         }
 
+        static byte[] defaultIcon;
+
         public byte[] getIcon(int appId, bool large)
         {
             var path = Recorder.GetIconPath(appId, large);
@@ -377,7 +379,11 @@ limit 1",
             {
                 return File.ReadAllBytes(path);
             }
-            return null;
+            if (defaultIcon == null)
+            {
+                defaultIcon = File.ReadAllBytes("./webui/img/icon.png");
+            }
+            return defaultIcon;
         }
 
         static byte[] imageNone = null;
@@ -472,15 +478,18 @@ limit 1",
 
                 //从文件系统找 
                 {
-                    var path = Recorder.getFileName(info.timeSrc); 
-                    var files = (from f in Directory.GetFiles(Path.GetDirectoryName(path), "????????." + Recorder.ExName) orderby f select f).ToArray(); 
-                    var needtime = info.timeSrc.TimeOfDay;// getTime(path);
-                    var match = find(files, i => getTime(i) > needtime);
+                    var path = Recorder.getFileName(info.timeSrc);
+                    var needtime = info.timeSrc.TimeOfDay;
+                    var needtimetext = needtime.ToString("hhmmss"); 
+                    var match = (from f in Directory.GetFiles(Path.GetDirectoryName(path), "????????." + Recorder.ExName) 
+                                 where Path.GetFileNameWithoutExtension(f).CompareTo(needtimetext) < 0 
+                                 orderby f
+                                 select f).LastOrDefault(); 
                     if (match != null)
                     { 
                         var time = needtime - getTime(match);
                         var data = Ffmpeg.Snapshot(match, time); 
-                        if (data != null)
+                        if (data != null && data.Length > 0)
                         {
                             return data;
                         }

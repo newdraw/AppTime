@@ -69,7 +69,7 @@ namespace AppTime
             }
 
             var rate = images.Length / ((images.Last().Time - images.First().Time).TotalSeconds + 1);
-            var crf = (100 - Settings.Default.ImageQuality) / 100d * 63;
+            var crf = Settings.Default.ImageQuality;//0-质量最高 63-质量最低 实测40质量也不错且体积较小
 
             var tempfile = Path.Combine(Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(file) + ".tmp");
 

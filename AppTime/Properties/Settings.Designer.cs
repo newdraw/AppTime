@@ -49,19 +49,7 @@ namespace AppTime.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("930")]
-        public int BufferSeconds {
-            get {
-                return ((int)(this["BufferSeconds"]));
-            }
-            set {
-                this["BufferSeconds"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("51")]
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
         public int ImageQuality {
             get {
                 return ((int)(this["ImageQuality"]));

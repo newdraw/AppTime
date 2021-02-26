@@ -42,7 +42,15 @@ namespace AppTime
                 new {Text="不留存", Value=0},
             };
             cboRecordScreen.DisplayMember = "Text";
-            cboRecordScreen.ValueMember = "Value"; 
+            cboRecordScreen.ValueMember = "Value";
+
+            cboImageQuality.DataSource = new[] {
+                new {Text="最省磁盘", Value=63},
+                new {Text="均衡", Value=50},
+                new {Text="高质量", Value=40},
+            };
+            cboImageQuality.DisplayMember = "Text";
+            cboImageQuality.ValueMember = "Value";
         }
 
         private void btnOpen_Click(object sender, EventArgs e)
@@ -88,8 +96,7 @@ namespace AppTime
             {
                 MessageBox.Show("数据存储位置无效，请重新选择。");
             }
-            Settings.Default.BufferSeconds = trackBufferSeconds.Value;
-            Settings.Default.ImageQuality = trackImageQuality.Value;
+            Settings.Default.ImageQuality = (int) cboImageQuality.SelectedValue;
             Settings.Default.RecordScreenDays = (int)cboRecordScreen.SelectedValue;
             Settings.Default.Save();
 
@@ -130,10 +137,8 @@ namespace AppTime
                 {
                     txtDataPath.Text = Settings.Default.DataPath;
                 }
-                cboRecordScreen.SelectedValue = Settings.Default.RecordScreenDays;
-                trackBufferSeconds.Value = Settings.Default.BufferSeconds;
-                trackImageQuality.Value = Settings.Default.ImageQuality;
-                trackBufferSeconds_Scroll(null, null);
+                cboRecordScreen.SelectedValue = Settings.Default.RecordScreenDays; 
+                cboImageQuality.SelectedValue = Settings.Default.ImageQuality; 
 
                 using var reg = Registry.CurrentUser.CreateSubKey(regkey);
                 chkAutoRun.Checked = (reg.GetValue(appname) as string) == Application.ExecutablePath;
@@ -144,7 +149,7 @@ namespace AppTime
 
         private void btnAbout_Click(object sender, EventArgs e)
         {
-            MessageBox.Show($"AppTime桌面时间管理\r\n\r\n联系作者：newdraw@hotmail.com", "关于", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"AppTime桌面时间管理\r\nV{Application.ProductVersion}\r\n\r\n联系作者：newdraw@hotmail.com", "关于", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnDataPath_Click(object sender, EventArgs e)
@@ -153,12 +158,8 @@ namespace AppTime
             if(dlg.ShowDialog()== DialogResult.OK)
             {
                 txtDataPath.Text = dlg.SelectedPath;
-            }
+            }  
         }
-
-        private void trackBufferSeconds_Scroll(object sender, EventArgs e)
-        {
-            lblBufferSeconds.Text = Math.Round(TimeSpan.FromSeconds(trackBufferSeconds.Value).TotalMinutes) + "分钟";
-        }
+ 
     }
 }

@@ -8,11 +8,8 @@
     <Setting Name="RecordScreenDays" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">30</Value>
     </Setting>
-    <Setting Name="BufferSeconds" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">930</Value>
-    </Setting>
     <Setting Name="ImageQuality" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">51</Value>
+      <Value Profile="(Default)">50</Value>
     </Setting>
   </Settings>
 </SettingsFile>
