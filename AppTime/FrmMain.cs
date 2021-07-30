@@ -109,7 +109,14 @@ namespace AppTime
                 }
                 else
                 {
-                    reg.DeleteValue(appname);
+                    try
+                    {
+                        reg.DeleteValue(appname);
+                    }
+                    catch(ArgumentException)
+                    {
+                        //ignore
+                    }
                 }
             }
             catch (UnauthorizedAccessException)
