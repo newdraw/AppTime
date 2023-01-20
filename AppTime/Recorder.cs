@@ -401,12 +401,14 @@ namespace AppTime
 
         Bitmap GetScreen()
         {
-            var result = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
+            // 获取当前焦点所在的屏幕
+            var screen = Screen.FromHandle(WinApi.GetForegroundWindow());
+            var result = new Bitmap(screen.Bounds.Width, screen.Bounds.Height);
             using var g = Graphics.FromImage(result);
             retry:
             try
             {
-                g.CopyFromScreen(0, 0, 0, 0, Screen.PrimaryScreen.Bounds.Size);
+                g.CopyFromScreen(screen.Bounds.X, screen.Bounds.Y, 0, 0, screen.Bounds.Size);
             }
             catch
             {
