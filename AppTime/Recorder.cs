@@ -316,7 +316,16 @@ namespace AppTime
             //检查记录天数限制
             if (lastCheck != now.Date)
             {
-                var firstDate = now.Date.AddDays(-Settings.Default.RecordScreenDays);
+                DateTime firstDate;
+                if (Settings.Default.RecordScreenDays != int.MaxValue)
+                {
+                    firstDate = now.Date.AddDays(-Settings.Default.RecordScreenDays);
+                }
+                else
+                {
+                    firstDate = DateTime.MinValue;
+                }
+
                 var dirs = Directory.EnumerateDirectories(ScreenPath, "????????");
                 foreach (var i in dirs)
                 {
