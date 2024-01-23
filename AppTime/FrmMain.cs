@@ -1,5 +1,6 @@
 ﻿
 using AppTime.Properties;
+using Microsoft.VisualBasic;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.Security.Cryptography;
 using System.Text;
 using System.Web.ModelBinding;
 using System.Web.UI.WebControls;
@@ -34,7 +36,6 @@ namespace AppTime
 
         private void FrmMain_Load(object sender, EventArgs e)
         {
-
             cboRecordScreen.DataSource = new[] {
                 new {Text="最近30天", Value=30},
                 new {Text="最近15天", Value=15},
@@ -68,9 +69,31 @@ namespace AppTime
             this.Hide();
         }
 
+        bool checkPassword() {
+            if (!string.IsNullOrEmpty(Settings.Default.ManagePassword))
+            {
+                var pwd = Interaction.InputBox("请输入管理密码");
+                if (string.IsNullOrEmpty(pwd))
+                {
+                    return false;
+                }
+                using var sha = SHA256.Create();
+                var hash = Convert.ToBase64String(sha.ComputeHash(Encoding.UTF8.GetBytes(pwd)));
+                if (hash != Settings.Default.ManagePassword)
+                {
+                    MessageBox.Show("密码错误", "", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    return false;
+                }
+            }
+            return true;
+        }
+
         bool cancelClose = true;
         private void btnExit_Click(object sender, EventArgs e)
         {
+            if (!checkPassword()) {
+                return;
+            }
             this.Hide();
             cancelClose = false;
             Program.recorder.FlushScreenBuffer();
@@ -98,8 +121,24 @@ namespace AppTime
             }
             Settings.Default.ImageQuality = (int) cboImageQuality.SelectedValue;
             Settings.Default.RecordScreenDays = (int)cboRecordScreen.SelectedValue;
+            if (txtExitPassword.Text == "")
+            {
+                Settings.Default.ManagePassword = null;
+            }
+            else if (txtExitPassword.Text == NOT_CHANGED)
+            {
+                //do nothing
+            }
+            else
+            {
+                using var sha = SHA256.Create();
+                var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(txtExitPassword.Text));
+                Settings.Default.ManagePassword = Convert.ToBase64String(hash);
+            }
+            
             Settings.Default.Save();
 
+            #region 开机启动
             using var reg = Registry.CurrentUser.CreateSubKey(regkey);
             try
             {
@@ -123,6 +162,7 @@ namespace AppTime
             {
                 MessageBox.Show("设置启动失败，请检查：\r\n\r\n1、关闭杀毒软件（如360等）；\r\n2、以管理员身份运行本程序。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
+            #endregion
 
             this.Hide();
         }
@@ -132,10 +172,17 @@ namespace AppTime
             this.Hide();
         }
 
+        const string NOT_CHANGED = "**NOT_CHANGED**NOT_CHANGED**";
+
         private void btnSetting_Click(object sender, EventArgs e)
         {
             if (!this.Visible)
             {
+                if (!checkPassword())
+                {
+                    return;
+                }
+
                 if (string.IsNullOrEmpty(Settings.Default.DataPath))
                 {
                     txtDataPath.Text = Application.StartupPath;
@@ -145,7 +192,8 @@ namespace AppTime
                     txtDataPath.Text = Settings.Default.DataPath;
                 }
                 cboRecordScreen.SelectedValue = Settings.Default.RecordScreenDays; 
-                cboImageQuality.SelectedValue = Settings.Default.ImageQuality; 
+                cboImageQuality.SelectedValue = Settings.Default.ImageQuality;
+                txtExitPassword.Text = string.IsNullOrEmpty(Settings.Default.ManagePassword) ? "" : NOT_CHANGED;
 
                 using var reg = Registry.CurrentUser.CreateSubKey(regkey);
                 chkAutoRun.Checked = (reg.GetValue(appname) as string) == Application.ExecutablePath;
@@ -167,6 +215,18 @@ namespace AppTime
                 txtDataPath.Text = dlg.SelectedPath;
             }  
         }
- 
+
+        private void txtExitPassword_TextChanged(object sender, EventArgs e)
+        {
+            chkExitPassword.Checked = txtExitPassword.Text != "";
+        }
+
+        private void chkExitPassword_Click(object sender, EventArgs e)
+        {
+            if (!chkExitPassword.Checked)
+            {
+                txtExitPassword.Text = "";
+            }
+        }
     }
 }

@@ -43,10 +43,13 @@
             this.btnAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.btnExit = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.cboImageQuality = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.chkAutoRun = new System.Windows.Forms.CheckBox();
-            this.cboImageQuality = new System.Windows.Forms.ComboBox();
+            this.txtExitPassword = new System.Windows.Forms.TextBox();
+            this.chkExitPassword = new System.Windows.Forms.CheckBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.contextMenuStrip.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -93,7 +96,7 @@
             // 
             // btnOK
             // 
-            this.btnOK.Location = new System.Drawing.Point(366, 245);
+            this.btnOK.Location = new System.Drawing.Point(368, 286);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(158, 45);
             this.btnOK.TabIndex = 6;
@@ -104,7 +107,7 @@
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(556, 245);
+            this.btnCancel.Location = new System.Drawing.Point(558, 286);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(158, 45);
             this.btnCancel.TabIndex = 7;
@@ -127,34 +130,34 @@
             this.btnAbout,
             this.btnExit});
             this.contextMenuStrip.Name = "contextMenuStrip";
-            this.contextMenuStrip.Size = new System.Drawing.Size(121, 92);
+            this.contextMenuStrip.Size = new System.Drawing.Size(120, 92);
             // 
             // btnOpen
             // 
             this.btnOpen.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Bold);
             this.btnOpen.Name = "btnOpen";
-            this.btnOpen.Size = new System.Drawing.Size(120, 22);
+            this.btnOpen.Size = new System.Drawing.Size(119, 22);
             this.btnOpen.Text = "打开(&O)";
             this.btnOpen.Click += new System.EventHandler(this.btnOpen_Click);
             // 
             // btnSetting
             // 
             this.btnSetting.Name = "btnSetting";
-            this.btnSetting.Size = new System.Drawing.Size(120, 22);
+            this.btnSetting.Size = new System.Drawing.Size(119, 22);
             this.btnSetting.Text = "设置(&S)";
             this.btnSetting.Click += new System.EventHandler(this.btnSetting_Click);
             // 
             // btnAbout
             // 
             this.btnAbout.Name = "btnAbout";
-            this.btnAbout.Size = new System.Drawing.Size(120, 22);
+            this.btnAbout.Size = new System.Drawing.Size(119, 22);
             this.btnAbout.Text = "关于(&A)";
             this.btnAbout.Click += new System.EventHandler(this.btnAbout_Click);
             // 
             // btnExit
             // 
             this.btnExit.Name = "btnExit";
-            this.btnExit.Size = new System.Drawing.Size(120, 22);
+            this.btnExit.Size = new System.Drawing.Size(119, 22);
             this.btnExit.Text = "退出(&E)";
             this.btnExit.Click += new System.EventHandler(this.btnExit_Click);
             // 
@@ -164,12 +167,26 @@
             this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.cboRecordScreen);
-            this.groupBox1.Location = new System.Drawing.Point(34, 85);
+            this.groupBox1.Location = new System.Drawing.Point(34, 123);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(682, 132);
             this.groupBox1.TabIndex = 10;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "记录屏幕";
+            // 
+            // cboImageQuality
+            // 
+            this.cboImageQuality.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboImageQuality.FormattingEnabled = true;
+            this.cboImageQuality.Items.AddRange(new object[] {
+            "记录最近30天",
+            "记录最近14天",
+            "无限制记录",
+            "不记录"});
+            this.cboImageQuality.Location = new System.Drawing.Point(98, 76);
+            this.cboImageQuality.Name = "cboImageQuality";
+            this.cboImageQuality.Size = new System.Drawing.Size(121, 20);
+            this.cboImageQuality.TabIndex = 20;
             // 
             // label4
             // 
@@ -192,32 +209,52 @@
             // chkAutoRun
             // 
             this.chkAutoRun.AutoSize = true;
-            this.chkAutoRun.Location = new System.Drawing.Point(40, 255);
+            this.chkAutoRun.Location = new System.Drawing.Point(42, 296);
             this.chkAutoRun.Name = "chkAutoRun";
             this.chkAutoRun.Size = new System.Drawing.Size(114, 16);
             this.chkAutoRun.TabIndex = 11;
             this.chkAutoRun.Text = "开机自动启动(&A)";
             this.chkAutoRun.UseVisualStyleBackColor = true;
             // 
-            // cboImageQuality
+            // txtExitPassword
             // 
-            this.cboImageQuality.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cboImageQuality.FormattingEnabled = true;
-            this.cboImageQuality.Items.AddRange(new object[] {
-            "记录最近30天",
-            "记录最近14天",
-            "无限制记录",
-            "不记录"});
-            this.cboImageQuality.Location = new System.Drawing.Point(98, 76);
-            this.cboImageQuality.Name = "cboImageQuality";
-            this.cboImageQuality.Size = new System.Drawing.Size(121, 20);
-            this.cboImageQuality.TabIndex = 20;
+            this.txtExitPassword.Location = new System.Drawing.Point(132, 74);
+            this.txtExitPassword.MaxLength = 50;
+            this.txtExitPassword.Name = "txtExitPassword";
+            this.txtExitPassword.PasswordChar = '*';
+            this.txtExitPassword.Size = new System.Drawing.Size(360, 21);
+            this.txtExitPassword.TabIndex = 12;
+            this.txtExitPassword.TextChanged += new System.EventHandler(this.txtExitPassword_TextChanged);
+            // 
+            // chkExitPassword
+            // 
+            this.chkExitPassword.AutoSize = true;
+            this.chkExitPassword.Location = new System.Drawing.Point(42, 76);
+            this.chkExitPassword.Name = "chkExitPassword";
+            this.chkExitPassword.Size = new System.Drawing.Size(72, 16);
+            this.chkExitPassword.TabIndex = 19;
+            this.chkExitPassword.Text = "管理密码";
+            this.chkExitPassword.UseVisualStyleBackColor = true;
+            this.chkExitPassword.Click += new System.EventHandler(this.chkExitPassword_Click);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.ForeColor = System.Drawing.Color.Gray;
+            this.label3.Location = new System.Drawing.Point(519, 78);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(197, 12);
+            this.label3.TabIndex = 20;
+            this.label3.Text = "设置和退出时，系统将校验管理密码";
             // 
             // FrmMain
             // 
             this.AcceptButton = this.btnOK;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(751, 320);
+            this.ClientSize = new System.Drawing.Size(751, 363);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.chkExitPassword);
+            this.Controls.Add(this.txtExitPassword);
             this.Controls.Add(this.chkAutoRun);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnCancel);
@@ -262,6 +299,9 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.CheckBox chkAutoRun;
         private System.Windows.Forms.ComboBox cboImageQuality;
+        private System.Windows.Forms.TextBox txtExitPassword;
+        private System.Windows.Forms.CheckBox chkExitPassword;
+        private System.Windows.Forms.Label label3;
     }
 }
 
