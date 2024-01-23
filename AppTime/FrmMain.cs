@@ -77,9 +77,7 @@ namespace AppTime
                 {
                     return false;
                 }
-                using var sha = SHA256.Create();
-                var hash = Convert.ToBase64String(sha.ComputeHash(Encoding.UTF8.GetBytes(pwd)));
-                if (hash != Settings.Default.ManagePassword)
+                if (Hash(pwd) != Settings.Default.ManagePassword)
                 {
                     MessageBox.Show("密码错误", "", MessageBoxButtons.OK, MessageBoxIcon.Stop);
                     return false;
@@ -106,6 +104,14 @@ namespace AppTime
             e.Cancel = cancelClose;
         }
 
+        string Hash(string password)
+        {
+            const string salt = "AppTime-salt";
+            using var sha = SHA256.Create();
+            var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(password + salt));
+            return Convert.ToBase64String(hash);
+        }
+
         private void btnOK_Click(object sender, EventArgs e)
         {
             try
@@ -130,10 +136,8 @@ namespace AppTime
                 //do nothing
             }
             else
-            {
-                using var sha = SHA256.Create();
-                var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(txtExitPassword.Text));
-                Settings.Default.ManagePassword = Convert.ToBase64String(hash);
+            { 
+                Settings.Default.ManagePassword = Hash(txtExitPassword.Text);
             }
             
             Settings.Default.Save();
