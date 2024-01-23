@@ -326,14 +326,14 @@ namespace AppTime
                     firstDate = DateTime.MinValue;
                 }
 
-                var dirs = Directory.EnumerateDirectories(ScreenPath, "????????");
+                var dirs = Directory.EnumerateDirectories(ScreenPath, "????????");//找到所有录屏目录
                 foreach (var i in dirs)
                 {
                     if (DateTime.TryParseExact(Path.GetFileName(i), "yyyyMMdd", CultureInfo.CurrentCulture, DateTimeStyles.None, out var date))
                     {
                         if (date < firstDate)
                         {
-                            Directory.Delete(i);
+                            Directory.Delete(i, true); //删除过期录屏
                         }
                     }
                 }
